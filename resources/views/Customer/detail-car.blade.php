@@ -121,7 +121,7 @@
             <form action="{{ url('booking-car/' . $car->slug) }}" method="POST" class="flex flex-col overflow-hidden">
                 @csrf
 
-                <input type="hidden" name="customer_id" value="1">
+                <input type="hidden" name="customer_id" value="{{ $user->id }}">
 
                 <div class="p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar" style="max-height: calc(90vh - 200px);">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -144,8 +144,8 @@
                             <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Data
                                 Pemesan</label>
                             <div class="space-y-1">
-                                {{-- <p class="text-sm font-black text-slate-800">{{ auth()->user()->name ?? 'Guest User' }}</p>
-                                <p class="text-[11px] font-bold text-slate-500">{{ auth()->user()->phone ?? '-' }}</p> --}}
+                                <p class="text-sm font-black text-slate-800">{{ $user->name }}</p>
+                                <p class="text-[11px] font-bold text-slate-500">{{ $user->phone }}</p>
                             </div>
                         </div>
                     </div>

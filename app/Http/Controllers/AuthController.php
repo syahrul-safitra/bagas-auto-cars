@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 class AuthController extends Controller {
 
     public function login() {
+
+        if(Auth::guard('customer')->check() || Auth::guard('admin')->check()) {
+            return back();
+        }
+
         return view('Auth.login');
     }
 
@@ -19,7 +24,7 @@ class AuthController extends Controller {
         ]);
 
         if (Auth::guard('admin')->attempt($credentials)) {
-            return redirect('/dashboard')->with('success', 'Berhasil login sebagai admin');
+            return redirect('/admin/dashboard')->with('success', 'Berhasil login sebagai admin');
         }
 
         if (Auth::guard('customer')->attempt($credentials)) {

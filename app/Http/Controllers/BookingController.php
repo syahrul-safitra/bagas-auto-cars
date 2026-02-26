@@ -138,29 +138,26 @@ class BookingController extends Controller
 
         $booking->delete();
 
-        return back()->with('success', 'Data booking '.$booking_code.' telah berhasil dihapus.');
+        return back()->with('success', 'Data booking '.$booking->booking_code.' telah berhasil dihapus.');
     }
 
-    public function uploadBukti(Request $request, $booking_code)
+    public function uploadBukti(Request $request, Booking $booking)
     {
 
         $request->validate([
             'bukti_dp' => 'required|image|mimes:jpg,png,jpeg|max:2048',
         ]);
 
-        $booking = Booking::where('booking_code', $booking_code)
-            ->where('customer_id', 1)
-            ->firstOrFail();
 
         if ($request->hasFile('bukti_dp')) {
             $file = $request->file('bukti_dp');
-            $filename = 'DP-'.$booking_code.'-'.time().'.'.$file->getClientOriginalExtension();
+            $filename = 'DP-'.$booking->booking_code.'-'.time().'.'.$file->getClientOriginalExtension();
 
             // Simpan ke folder public/uploads/bukti_pembayaran
             $file->move(public_path('uploads/bukti_pembayaran'), $filename);
 
             $booking->update([
-                'bukti_dp' => $filename,
+                'bukti_dp' => $filename,    
                 'payment_status' => 'Waiting_Verification',
                 // Opsional: kamu bisa ubah booking_status ke 'Waiting Verification' di sini
             ]);

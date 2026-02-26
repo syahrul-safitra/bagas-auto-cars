@@ -25,6 +25,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
+
+    if(auth()->guard('admin')->check()) {
+        return redirect('/admin/dashboard');
+    }
+
     return view('Customer.home', [
         'cars' => Car::latest()->limit(3)->get(),
     ]);
@@ -58,8 +63,7 @@ Route::get('/admin/dashboard', function () {
         'latestCars'
     ));
 
-    return view('Admin.dashboard');
-});
+})->middleware('isAdmin');
 
 Route::resource('/admin/categories', CategoryController::class)->parameters([
     'categories' => 'category:slug',
@@ -115,18 +119,17 @@ Route::get('/search-cars', function (Request $request) {
 
     return view('Customer.cars', compact('cars', 'categories'));
 
-    // return view('Customer.cars');
-});
+})->middleware('isCustomer');
 
 // Customer :
-Route::get('/detail-car/{slug}', [CarController::class, 'show']);
-Route::post('/booking-car/{slug}', [BookingController::class, 'store']);
+Route::get('/detail-car/{slug}', [CarController::class, 'show'])->middleware('isCustomer');
+Route::post('/booking-car/{slug}', [BookingController::class, 'store'])->middleware('isCustomer');
 
-Route::get('/booking/detail/{booking_code}', [BookingController::class, 'show']);
-Route::post('/booking-upload/{booking_code}', [BookingController::class, 'uploadBukti']);
+Route::get('/booking/detail/{booking_code}', [BookingController::class, 'show'])->middleware('isCustomer');
+Route::post('/booking-upload/{booking}', [BookingController::class, 'uploadBukti'])->middleware('isCustomer');
 
-Route::get('/profile', [CustomerController::class, 'show']);
-Route::put('/profile/{customer}', [CustomerController::class, 'update']);
+Route::get('/profile', [CustomerController::class, 'show'])->middleware('isCustomer');
+Route::put('/profile/{customer}', [CustomerController::class, 'update'])->middleware('isCustomer');
 
 // ================== Authentication : ======================================
 Route::get('/register', [CustomerController::class, 'create']);
@@ -135,3 +138,11 @@ Route::post('/register', [CustomerController::class, 'store']);
 Route::get('/login', [AuthController::class, 'login']);
 Route::post('/login', [AuthController::class, 'authenticate']);
 Route::post('/logout', [AuthController::class, 'logout']);
+
+Route::get('/test-b', function() {
+    return Auth::guard('customer')->user();
+});
+
+Route::get('/test-a', function() {
+    return Auth::guard('admin')->user();
+});

@@ -90,7 +90,8 @@ class CarController extends Controller
     public function show(Car $slug)
     {
         return view('Customer.detail-car', [
-            'car' => $slug
+            'car' => $slug,
+            'user' => auth()->guard('customer')->user()
         ]);
     }
 

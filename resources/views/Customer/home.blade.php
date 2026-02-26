@@ -1,6 +1,42 @@
 @extends('Customer.Layouts.main')
 
 @section('container')
+
+@section('container')
+    {{-- Alert Success --}}
+    @if (session('success'))
+        <div class="fixed top-24 left-1/2 z-[999] w-full max-w-md -translate-x-1/2 px-4 animate-[fadeInDown_0.5s_ease-out]">
+            <div class="alert alert-success border-none bg-emerald-500 font-bold text-white shadow-2xl rounded-2xl">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="italic tracking-tight uppercase text-xs">{{ session('success') }}</span>
+                <button onclick="this.parentElement.parentElement.remove()" class="btn btn-ghost btn-xs">✕</button>
+            </div>
+        </div>
+
+        <script>
+            // Tunggu sampai dokumen siap
+            document.addEventListener('DOMContentLoaded', function() {
+                const alert = document.querySelector('.alert').parentElement;
+
+                // Setelah 5 detik (5000ms), jalankan fungsi tutup
+                setTimeout(() => {
+                    if (alert) {
+                        // Tambahkan animasi fade out sederhana
+                        alert.style.transition = "opacity 0.5s ease";
+                        alert.style.opacity = "0";
+
+                        // Hapus elemen dari DOM setelah animasi selesai
+                        setTimeout(() => alert.remove(), 500);
+                    }
+                }, 5000);
+            });
+        </script>
+    @endif
+
     <div id="home" class="hero relative min-h-screen"
         style="background-image: url('https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'); background-size: cover; background-position: center;">
         <div class="hero-overlay bg-black/60"></div>

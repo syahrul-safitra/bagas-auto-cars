@@ -44,53 +44,49 @@
                 </div>
 
                 <div class="flex items-center gap-4">
+
                     @if (auth()->guard('customer')->check())
+
+                        @php
+                            $user = auth()->guard('customer')->user();
+                        @endphp
+
                         <div class="dropdown dropdown-end">
                             <label tabindex="0"
                                 class="btn btn-ghost flex items-center gap-3 rounded-2xl px-4 hover:bg-slate-50">
                                 <div class="text-right hidden sm:block">
                                     <p
                                         class="text-[10px] font-black uppercase tracking-tight text-slate-800 leading-none">
-                                        {{ auth()->user()->name }}
+                                        {{ $user->name }}
                                     </p>
                                     <p class="text-[8px] font-bold uppercase text-indigo-500 tracking-widest mt-1">
-                                        {{ auth()->user()->role == 'admin' ? 'Administrator' : 'Customer' }}
+                                        {{ 'Customer' }}
                                     </p>
                                 </div>
                                 <div
                                     class="h-10 w-10 overflow-hidden rounded-full bg-indigo-600 ring-2 ring-indigo-50 flex items-center justify-center">
-                                    <span
-                                        class="font-black text-white italic">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                                    <span class="font-black text-white italic">{{ substr($user->name, 0, 1) }}</span>
                                 </div>
                             </label>
                             <ul tabindex="0"
                                 class="dropdown-content menu mt-4 w-52 rounded-[1.5rem] border border-slate-100 bg-white p-2 shadow-2xl shadow-slate-200/50">
 
-                                @if (auth()->user()->role == 'admin')
-                                    <li>
-                                        <a href="/admin/dashboard"
-                                            class="rounded-xl py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-indigo-50 hover:text-indigo-600">
-                                            Admin Panel
-                                        </a>
-                                    </li>
-                                @else
-                                    <li>
-                                        <a href="{{ route('profile') }}"
-                                            class="rounded-xl py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-indigo-50 hover:text-indigo-600">
-                                            Profile Saya
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="/my-bookings"
-                                            class="rounded-xl py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-indigo-50 hover:text-indigo-600">
-                                            Booking Saya
-                                        </a>
-                                    </li>
-                                @endif
+                                <li>
+                                    <a href="{{ url('profile') }}"
+                                        class="rounded-xl py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-indigo-50 hover:text-indigo-600">
+                                        Profile Saya
+                                    </a>
+                                </li>
+                                {{-- <li>
+                                    <a href="/my-bookings"
+                                        class="rounded-xl py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-indigo-50 hover:text-indigo-600">
+                                        Booking Saya
+                                    </a>
+                                </li> --}}
 
                                 <div class="divider my-1 opacity-50"></div>
                                 <li>
-                                    <form action="{{ route('logout') }}" method="POST">
+                                    <form action="{{ url('logout') }}" method="POST">
                                         @csrf
                                         <button type="submit"
                                             class="w-full text-left rounded-xl py-3 text-[10px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-50">
