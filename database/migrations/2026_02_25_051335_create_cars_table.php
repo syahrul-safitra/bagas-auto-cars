@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('cars', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->foreignId('category_id')->constrained()->onUpdate('cascade')
+                ->onDelete('cascade');
             $table->string('name'); // Contoh: M4 Competition
             $table->string('slug')->unique();
             $table->integer('year');

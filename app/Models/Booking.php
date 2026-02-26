@@ -10,22 +10,28 @@ class Booking extends Model
     use HasFactory;
 
     protected $fillable = [
-        'customer_id', 
+        'customer_id',
         'car_id',
-        'booking_code', 
+        'booking_code',
         'booking_fee',
         'payment_status',
         'booking_status',
         'notes',
-        'bukti_dp'
+        'bukti_dp',
     ];
 
-    public function car() {
+    public function car()
+    {
         return $this->belongsTo(Car::class);
     }
 
-    public function customer() {
+    public function customer()
+    {
         return $this->belongsTo(Customer::class);
     }
 
+    public function getRouteKeyName()
+    {
+        return 'booking_code';
+    }
 }

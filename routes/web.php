@@ -5,12 +5,14 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CarController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
-
+use App\Http\Controllers\UserController;
+use App\Models\Booking;
 use App\Models\Car;
 use App\Models\Category;
-
-use Illuminate\Support\Facades\Route;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -28,7 +30,34 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
+Route::get('/admin/dashboard', function () {
+
+    $totalCars = Car::count();
+    $newCarsToday = Car::whereDate('created_at', Carbon::today())->count();
+
+    // 2. Booking Aktif (Status yang perlu konfirmasi/pending)
+    $activeBookings = Booking::where('booking_status', 'pending')->count();
+
+    // 3. Estimasi Penjualan (Hanya contoh logika: total harga mobil yang terjual bulan ini)
+    // Jika Anda belum punya field penjualan, bisa gunakan angka dummy dulu atau hitung dari transaksi
+    $estimatedSales = Car::where('status', 'sold')
+        ->whereMonth('updated_at', Carbon::now()->month)
+        ->sum('price');
+
+    // Format harga ke Milyar (M) untuk tampilan dashboard
+    $formattedSales = 'Rp '.($estimatedSales / 1000000000).'M';
+
+    // 4. Ambil 5 Armada Terbaru untuk tabel
+    $latestCars = Car::latest()->take(5)->get();
+
+    return view('Admin.dashboard', compact(
+        'totalCars',
+        'newCarsToday',
+        'activeBookings',
+        'formattedSales',
+        'latestCars'
+    ));
+
     return view('Admin.dashboard');
 });
 
@@ -42,6 +71,17 @@ Route::resource('admin/cars', CarController::class)->scoped([
     'car' => 'slug',
 ]);
 
+Route::get('/admin/booking', [BookingController::class, 'index']);
+Route::get('/admin/booking/{booking}', [BookingController::class, 'edit']);
+Route::put('/admin/booking/update/{booking}', [BookingController::class, 'update']);
+Route::delete('/admin/booking/{booking}', [BookingController::class, 'destroy']);
+Route::get('/export-pdf', [BookingController::class, 'exportPdf']);
+
+Route::get('/admin/customers', [CustomerController::class, 'index']);
+Route::delete('/admin/customers/{customer}', [CustomerController::class, 'destroy']);
+
+Route::resource('/admin/users', UserController::class);
+
 Route::get('/search-cars', function (Request $request) {
 
     // $query = Car::with('category')->where('status', 'Available');
@@ -49,7 +89,7 @@ Route::get('/search-cars', function (Request $request) {
 
     // Filter Search
     if ($request->filled('search')) {
-        $query->where('name', 'like', '%' . $request->search . '%');
+        $query->where('name', 'like', '%'.$request->search.'%');
     }
 
     // Filter Kategori
@@ -74,13 +114,11 @@ Route::get('/search-cars', function (Request $request) {
     $categories = Category::all();
 
     return view('Customer.cars', compact('cars', 'categories'));
-    
+
     // return view('Customer.cars');
 });
 
-
-
-// Customer : 
+// Customer :
 Route::get('/detail-car/{slug}', [CarController::class, 'show']);
 Route::post('/booking-car/{slug}', [BookingController::class, 'store']);
 
@@ -93,8 +131,6 @@ Route::put('/profile/{customer}', [CustomerController::class, 'update']);
 // ================== Authentication : ======================================
 Route::get('/register', [CustomerController::class, 'create']);
 Route::post('/register', [CustomerController::class, 'store']);
-
-
 
 Route::get('/login', [AuthController::class, 'login']);
 Route::post('/login', [AuthController::class, 'authenticate']);

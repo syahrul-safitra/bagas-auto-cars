@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
 use App\Models\Booking;
+use App\Models\Car;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class CustomerController extends Controller
@@ -13,9 +15,21 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $search = $request->search;
+
+        $customers = Customer::query()
+            ->when($search, function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            })
+            ->withCount('bookings') // Asumsi relasi di model Customer bernama bookings()
+            ->latest()
+            ->paginate(10);
+
+        return view('Admin.Customer.index', compact('customers'));
     }
 
     /**
@@ -69,11 +83,11 @@ class CustomerController extends Controller
         $user = Customer::firstOrFail();
 
         $bookings = Booking::with('car')
-                ->where('customer_id', $user->id)
-                ->orderBy('created_at', 'desc')
-                ->get();
+            ->where('customer_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-    return view('Customer.profile', compact('user', 'bookings'));
+        return view('Customer.profile', compact('user', 'bookings'));
     }
 
     /**
@@ -92,7 +106,7 @@ class CustomerController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:customers,email,' . $customer->id,
+            'email' => 'required|email|unique:customers,email,'.$customer->id,
             'phone' => 'required|string|max:15',
             'address' => 'nullable|string|max:500',
             'password' => 'nullable|min:5', // Password opsional
@@ -120,6 +134,34 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        //
+
+        DB::beginTransaction();
+        try {
+            // $customer = Customer::findOrFail($id);
+
+            // 1. Cari semua booking milik customer ini yang statusnya masih aktif (Process/Deal)
+            // Kita ambil ID mobil-mobil tersebut
+            $carIds = $customer->bookings()
+                ->whereIn('booking_status', ['Process', 'Deal'])
+                ->pluck('car_id');
+
+            // 2. Update status mobil-mobil tersebut menjadi 'Available'
+            if ($carIds->isNotEmpty()) {
+                Car::whereIn('id', $carIds)->update(['status' => 'Available']);
+            }
+
+            // 3. Hapus data customer
+            // Catatan: Jika tidak pakai SoftDeletes, data booking terkait biasanya akan terhapus jika di migrasi ada 'onDelete cascade'
+            $customer->delete();
+
+            DB::commit();
+
+            return back()->with('success', 'Customer berhasil dihapus & unit mobil telah dikembalikan ke status Available.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()->with('error', 'Gagal menghapus customer: '.$e->getMessage());
+        }
     }
 }

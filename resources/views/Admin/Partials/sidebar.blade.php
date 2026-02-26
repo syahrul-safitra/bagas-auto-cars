@@ -67,8 +67,8 @@
 
             {{-- BOOKINGS --}}
             <li>
-                <a href="{{ url("/admin/bookings") }}"
-                    class="{{ Request::is("admin/bookings*") ? "bg-indigo-50 text-indigo-600 shadow-sm" : "hover:bg-slate-50" }} group flex gap-4 rounded-xl px-4 py-3 transition-all">
+                <a href="{{ url("/admin/booking") }}"
+                    class="{{ Request::is("admin/booking*") ? "bg-indigo-50 text-indigo-600 shadow-sm" : "hover:bg-slate-50" }} group flex gap-4 rounded-xl px-4 py-3 transition-all">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
@@ -93,6 +93,21 @@
 
             <li class="menu-title mb-2 mt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
                 System</li>
+
+            @if (auth()->guard("admin")->user()->is_owner)
+                <li>
+                    <a href="{{ url("/admin/users") }}"
+                        class="{{ Request::is("admin/users*") ? "bg-indigo-50 text-indigo-600 shadow-sm" : "hover:bg-slate-50" }} group flex gap-4 rounded-xl px-4 py-3 transition-all">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                            </path>
+                        </svg>
+                        Kelola Admin
+                    </a>
+                </li>
+            @endif
+
             <li>
                 <form action="{{ url("logout") }}" method="POST">
                     @csrf

@@ -13,14 +13,23 @@ return new class extends Migration
     {
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained();
-            $table->foreignId('car_id')->constrained();
             $table->string('booking_code')->unique(); // Contoh: BAC-2024001
             $table->bigInteger('booking_fee')->nullable(); // Tanda jadi / DP
             $table->enum('payment_status', ['Pending', 'Success', 'Cancelled', 'Paid_Off', 'Waiting_Verification'])->default('Pending');
             $table->enum('booking_status', ['Process', 'Deal', 'Failed'])->default('Process');
             $table->text('notes')->nullable();
             $table->string('bukti_dp')->nullable();
+
+            $table->foreignId('customer_id')
+                ->constrained()
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+
+            $table->foreignId('car_id')
+                ->constrained()
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+
             $table->timestamps();
         });
     }
