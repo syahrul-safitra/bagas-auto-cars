@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -63,9 +64,16 @@ class CustomerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Customer $customer)
+    public function show()
     {
-        //
+        $user = Customer::firstOrFail();
+
+        $bookings = Booking::with('car')
+                ->where('customer_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+    return view('Customer.profile', compact('user', 'bookings'));
     }
 
     /**
@@ -81,7 +89,30 @@ class CustomerController extends Controller
      */
     public function update(Request $request, Customer $customer)
     {
-        //
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:customers,email,' . $customer->id,
+            'phone' => 'required|string|max:15',
+            'address' => 'nullable|string|max:500',
+            'password' => 'nullable|min:5', // Password opsional
+        ]);
+
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'address' => $request->address,
+        ];
+
+        // Jika user mengisi password baru, maka kita enkripsi dan masukkan ke data update
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $customer->update($data);
+
+        return back()->with('success', 'Profil Anda berhasil diperbarui!');
     }
 
     /**

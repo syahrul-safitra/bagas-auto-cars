@@ -1,6 +1,6 @@
-@extends("Customer.Layouts.main")
+@extends('Customer.Layouts.main')
 
-@section("container")
+@section('container')
     <div id="home" class="hero relative min-h-screen"
         style="background-image: url('https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'); background-size: cover; background-position: center;">
         <div class="hero-overlay bg-black/60"></div>
@@ -63,7 +63,7 @@
                 <div
                     class="card bg-base-100 border-base-300 overflow-hidden border shadow-xl transition-all duration-300 hover:-translate-y-2">
                     <figure>
-                        <img src="{{ asset("uploads/thumbnails/" . $item->thumbnail) }}" alt="Supercar"
+                        <img src="{{ asset('uploads/thumbnails/' . $item->thumbnail) }}" alt="Supercar"
                             class="h-64 w-full object-cover" />
                     </figure>
                     <div class="card-body">
@@ -72,10 +72,11 @@
                             {{ $item->color }}</p>
                         <div class="divider my-2"></div>
                         <p class="text-primary text-2xl font-black tracking-tighter">Rp
-                            {{ number_format($item->price, 0, ",", ".") }}</span></p>
+                            {{ number_format($item->price, 0, ',', '.') }}</span></p>
                         <div class="card-actions mt-4">
-                            <button class="btn btn-primary w-full rounded-xl font-bold uppercase italic">Cek
-                                Detail</button>
+                            <a href="{{ url('/detail-car/' . $item->slug) }}"
+                                class="btn btn-primary w-full rounded-xl font-bold uppercase italic">Cek
+                                Detail</a>
                         </div>
                     </div>
                 </div>

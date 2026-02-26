@@ -16,10 +16,11 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained();
             $table->foreignId('car_id')->constrained();
             $table->string('booking_code')->unique(); // Contoh: BAC-2024001
-            $table->bigInteger('booking_fee'); // Tanda jadi / DP
-            $table->enum('payment_status', ['Pending', 'Success', 'Cancelled']);
-            $table->enum('booking_status', ['Process', 'Deal', 'Failed']);
+            $table->bigInteger('booking_fee')->nullable(); // Tanda jadi / DP
+            $table->enum('payment_status', ['Pending', 'Success', 'Cancelled', 'Paid_Off', 'Waiting_Verification'])->default('Pending');
+            $table->enum('booking_status', ['Process', 'Deal', 'Failed'])->default('Process');
             $table->text('notes')->nullable();
+            $table->string('bukti_dp')->nullable();
             $table->timestamps();
         });
     }

@@ -87,9 +87,11 @@ class CarController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Car $car)
+    public function show(Car $slug)
     {
-        //
+        return view('Customer.detail-car', [
+            'car' => $slug
+        ]);
     }
 
     /**
@@ -106,62 +108,76 @@ class CarController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, Car $car)
-    {
-        $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|max:255|unique:cars,name,'.$car->id,
-            'year' => 'required|numeric|digits:4',
-            'price' => 'required|numeric',
-            'mileage' => 'required|numeric',
-            'color' => 'required|string',
-            'transmission' => 'required|in:Automatic,Manual',
-            'fuel_type' => 'required|in:Bensin,Diesel,Electric,Hybrid',
-            'description' => 'required',
-            'thumbnail' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
-            'images.*' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
-            'status' => 'required|in:Available,Sold,Booked',
-        ]);
+{
+    $request->validate([
+        'category_id' => 'required|exists:categories,id',
+        'name' => 'required|max:255|unique:cars,name,'.$car->id,
+        'year' => 'required|numeric|digits:4',
+        'price' => 'required|numeric',
+        'mileage' => 'required|numeric',
+        'color' => 'required|string',
+        'transmission' => 'required|in:Automatic,Manual',
+        'fuel_type' => 'required|in:Bensin,Diesel,Electric,Hybrid',
+        'description' => 'required',
+        'thumbnail' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+        'images.*' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+        'status' => 'required|in:Available,Sold,Booked',
+    ]);
 
-        $data = $request->all();
-        $data['slug'] = Str::slug($request->name);
+    $data = $request->all();
+    $data['slug'] = Str::slug($request->name);
 
-        // 1. Handle Update Thumbnail
-        if ($request->hasFile('thumbnail')) {
-            // Hapus foto lama jika ada
-            if ($car->thumbnail && File::exists(public_path('uploads/thumbnails/'.$car->thumbnail))) {
-                File::delete(public_path('uploads/thumbnails/'.$car->thumbnail));
-            }
-
-            $file = $request->file('thumbnail');
-            $thumbnailName = time().'-thumb-'.Str::slug($request->name).'.'.$file->getClientOriginalExtension();
-            $file->move(public_path('uploads/thumbnails'), $thumbnailName);
-            $data['thumbnail'] = $thumbnailName;
+    // --- 1. HANDLE UPDATE THUMBNAIL ---
+    if ($request->hasFile('thumbnail')) {
+        if ($car->thumbnail && File::exists(public_path('uploads/thumbnails/'.$car->thumbnail))) {
+            File::delete(public_path('uploads/thumbnails/'.$car->thumbnail));
         }
 
-        // 2. Handle Update Galeri (Jika upload baru, ganti semua)
-        if ($request->hasFile('images')) {
-            // Hapus semua foto galeri lama dari folder
-            if ($car->images) {
-                foreach ($car->images as $oldImage) {
-                    if (File::exists(public_path('uploads/gallery/'.$oldImage))) {
-                        File::delete(public_path('uploads/gallery/'.$oldImage));
-                    }
+        $file = $request->file('thumbnail');
+        $thumbnailName = time().'-thumb-'.Str::slug($request->name).'.'.$file->getClientOriginalExtension();
+        $file->move(public_path('uploads/thumbnails'), $thumbnailName);
+        $data['thumbnail'] = $thumbnailName;
+    }
+
+    // --- 2. HANDLE UPDATE GALERI (ANTI-ERROR FOREACH) ---
+    if ($request->hasFile('images')) {
+        
+        // Logika Pengaman: Pastikan $car->images diperlakukan sebagai array
+        $oldImages = $car->images;
+        if (is_string($oldImages)) {
+            $oldImages = json_decode($oldImages, true) ?? [];
+        }
+
+        // Hapus file fisik galeri lama jika ada
+        if (!empty($oldImages) && is_array($oldImages)) {
+            foreach ($oldImages as $oldImage) {
+                $oldPath = public_path('uploads/gallery/'.$oldImage);
+                if (File::exists($oldPath)) {
+                    File::delete($oldPath);
                 }
             }
-
-            $galleryPaths = [];
-            foreach ($request->file('images') as $key => $image) {
-                $imageName = time().'-gal-'.$key.'-'.Str::slug($request->name).'.'.$image->getClientOriginalExtension();
-                $image->move(public_path('uploads/gallery'), $imageName);
-                $galleryPaths[] = $imageName;
-            }
-            $data['images'] = $galleryPaths;
         }
 
-        $car->update($data);
-
-        return redirect('/admin/cars')->with('success', 'Data unit berhasil diperbarui!');
+        // Upload foto-foto baru
+        $galleryPaths = [];
+        foreach ($request->file('images') as $key => $image) {
+            $imageName = time().'-gal-'.$key.'-'.Str::slug($request->name).'.'.$image->getClientOriginalExtension();
+            $image->move(public_path('uploads/gallery'), $imageName);
+            $galleryPaths[] = $imageName;
+        }
+        
+        // Simpan array foto baru ke data update
+        $data['images'] = $galleryPaths;
+    } else {
+        // Jika tidak upload foto baru, tetap gunakan foto yang sudah ada di DB
+        // supaya tidak ter-reset jadi null jika tidak mengisi input images
+        unset($data['images']); 
     }
+
+    $car->update($data);
+
+    return redirect('/admin/cars')->with('success', 'Data unit berhasil diperbarui!');
+}
 
     /**
      * Remove the specified resource from storage.
